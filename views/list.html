@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="nav-bar">&nbsp;</div>
+<div class="grid">
+  <div class="page">
+    <div class="page-header-content">
+      <h1>{{PROJECT}} <a href="/" class="back-button big page-back"></a></h1>
+    </div>
+    <ul class="jadelist">
+      {% for f in files %}
+      <li>
+        <div class="data">
+          <a href="{{PROJECT_URL}}/{{f}}">{{f}}</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
