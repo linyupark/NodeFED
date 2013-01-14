@@ -30,7 +30,7 @@ app.use lessMiddleware
 app.use express.static("#{__dirname}/public")
 app.use app.router
 app.configure 'development', ->
-	app.use express.errorHandler()
+  app.use express.errorHandler()
 
 # 扫描项目目录
 fs.readdir _g.pPath, (err, files) ->
@@ -85,6 +85,16 @@ assignViews = (req, resp, next) ->
       range1: (input) -> [1..input]
   next()
 
+# 获取views里的有效页面
+fetchViews = (project) ->
+  fs.readdir "#{_g.pPath}/#{project}/views", (err, files) ->
+    for i,f of files
+      if f in ['layouts']
+        delete files[i]
+      else 
+        files[i] = files[i].replace '.html', ''
+    files.filter -> yes
+
 # 项目汇聚页
 app.get '/', assignViews, (req, resp) ->
   resp.render 'index', 
@@ -136,15 +146,8 @@ app.get "/#{_g.pAlias}/:project/:page?", assignViews, (req, resp) ->
 
   # 列表
   else
-    fs.readdir "#{_g.pPath}/#{req.params.project}/views"
-    , (err, files) ->
-      for i,f of files
-        if f in ['layouts']
-          delete files[i]
-        else 
-          files[i] = files[i].replace '.html', ''
-      context.files = files.filter -> yes
-      resp.render 'list', context
+    context.files = fetchViews req.params.project
+    resp.render 'list', context
 
 # ------------------------------------------------------------------
 
