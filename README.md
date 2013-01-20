@@ -59,3 +59,74 @@ json类型数据也相同道理。
 并会返回可获取到文件的url地址json格式数据：
 
     {"url": "/upload/文件名"}
+
+
+模版使用基础教程
+=================
+swig为类django模版，简单的介绍几个使用方式。
+
+
+简单的页面（未使用布局）
+------------------------
+
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>{{ TITLE }}</title>
+      <script type="text/javascript" src="{{ PUBLIC }}/js/main.js"></script>
+    </head>
+    <body>
+
+      <h1>{{ TITLE }}</h1>
+
+      <ul>
+        {% set n5 = 5|range1 %}  <----- 创建一个可以循环执行5次的数组n5
+        {% for n in n5 %}
+        <li>{{ n }}.这块地方要重复显示5次</li>
+        {% endfor %}
+      </ul>
+
+    </body>
+    </html>
+
+使用布局
+------------------
+将布局文件放置项目目录中的 views/layouts 下 (如 base.html)
+
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <title>{% block title %}{% endblock %}</title>
+            <meta name="description" content="">
+            <meta name="keywords" content="">
+            <link rel="stylesheet" href="{{ PUBLIC }}/css/main.min.css">
+            <script src="{{ PUBLIC }}/js/sea-modules/seajs/1.3.1/sea.js"></script>
+            <script src="{{ PUBLIC }}/js/config.js"></script>
+            {% block head %}{% endblock %}
+        </head>
+        <body>
+            {% block body %}{% endblock %}
+            {% block bottom_js %}{% endblock %}
+        </body>
+    </html>
+
+其中的block为可以在子模版中填充的位置
+比如{% block head %}{% endblock %}
+则可以在引用这个布局的子模版中额外加入需要载入的css link或js文件
+
+看下继承了此布局的子模版(如 首页.html)
+
+    {% extends "layouts/base.html" %}
+    {% block body %}
+    <h1>Hello World!</h1>
+    {% endblock %}
+
+嵌入页面
+----------
+讲嵌入的内容放置在 views/layouts/inc 目录下
+在使用的模版中调用，比如嵌入分页内容
+
+    {% include 'layouts/inc/pagination.html' %}
+
