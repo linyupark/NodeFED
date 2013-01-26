@@ -111,6 +111,24 @@ app.all '/_ajax/:format', (req, resp) ->
         resp.send out
     catch error
       resp.json error: "json格式有误: #{error}"
+  if req.params.format is 'json2'
+    try
+      json = JSON.stringify req.query
+      if req.query.jsoncallback
+        resp.send "#{req.query.jsoncallback}(#{json})"
+      else
+        resp.send json
+    catch error
+      resp.json error: "json格式有误: #{error}"
+  if req.params.format is 'json3'
+    try
+      json = JSON.stringify req.body
+      if req.body.jsoncallback
+        resp.send "#{req.body.jsoncallback}(#{json})"
+      else
+        resp.send json
+    catch error
+      resp.json error: "json格式有误: #{error}"
 
 # 模拟上传
 app.post '/_upload', (req, resp) ->
@@ -129,25 +147,41 @@ app.post '/_upload', (req, resp) ->
     resp.json err: e.message
 
 # 列表&详细页
-app.all "/#{_g.pAlias}/:project/:page?", assignViews, (req, resp) ->
-  page = req.params.page || '页面列表'
+app.all "/#{_g.pAlias}/:project/:dir?/:page?", assignViews, (req, resp) ->
+  project = req.params.project
+  dir = req.params.dir
+  page = req.params.page
   context = 
-    'TITLE': "#{req.params.project} - #{page}"
-    'PUBLIC': "http://#{req.host}:#{app.get('port')}/#{_g.sAlias}/#{req.params.project}"
-    'PROJECT': req.params.project
+    'TITLE': "#{project} - #{page}"
+    'PUBLIC': "http://#{req.host}:#{app.get('port')}/#{_g.sAlias}/#{project}"
+    'PROJECT': project
+    'DIR': dir
     'PAGE': page
     'GET': req.query
     'POST': req.body
-    'PROJECT_URL': "/#{_g.pAlias}/#{req.params.project}"
+    'BASE_URL': "/#{_g.pAlias}/#{project}/#{dir}"
+    'PROJECT_URL': "/#{_g.pAlias}/#{project}"
 
   # 详细
-  if req.params.page
-    resp.render req.params.page, context, (err, html) ->
+  if page
+    resp.render dir+'/'+page, context, (err, html) ->
       resp.send prettyPrint(html)
+
+  # 二级目录
+  else if dir
+    stats = fs.statSync "#{_g.pPath}/#{project}/views/#{dir}"
+    if stats.isFile()
+      resp.send '页面必须放到目录下'
+    fs.readdir "#{_g.pPath}/#{project}/views/#{dir}"
+    , (err, files) ->
+      for i,f of files
+        files[i] = files[i].replace '.html', ''
+      context.files = files.filter -> yes
+      resp.render 'list', context
 
   # 列表
   else
-    fs.readdir "#{_g.pPath}/#{req.params.project}/views"
+    fs.readdir "#{_g.pPath}/#{project}/views"
     , (err, files) ->
       for i,f of files
         if f in ['layouts']
