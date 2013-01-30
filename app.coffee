@@ -130,6 +130,13 @@ app.all '/_ajax/:format', (req, resp) ->
     catch error
       resp.json error: "json格式有误: #{error}"
 
+# 请求代理(跨域专用)
+app.get '/_proxy.php', (req, resp) ->
+  http.get req.query.q, (res) ->
+    console.log res.statusCode
+    res.on 'data', (data) ->
+      resp.send data.toString()
+
 # 模拟上传
 app.post '/_upload', (req, resp) ->
   fn = req.query.name
